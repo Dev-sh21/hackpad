@@ -3,7 +3,10 @@ import User from "../../model/User";
 import { generateToken } from "../../lib/tokens";
 import { genSaltSync, hashSync, compareSync } from "bcrypt";
 
-
+/* HEALTH CHECK CONTROLLER */
+export const healthCheck: RequestHandler = async (req, res) => {
+    res.status(200).send("/auth/");
+};
 
 /**
  * @route /auth/register
