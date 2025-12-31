@@ -1,51 +1,62 @@
-import { RequestHandler } from "express";
+import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import User from "../../model/User";
-import { generateToken } from "../../lib/tokens";
-import { genSaltSync, hashSync, compareSync } from "bcrypt";
 
-/* HEALTH CHECK CONTROLLER */
-export const healthCheck: RequestHandler = async (req, res) => {
-    res.status(200).send("/auth/");
+export const register = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+    });
+
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1d" }
+    );
+
+    res.status(201).json({ token });
+  } catch (err) {
+    res.status(500).json({ error: "Register failed" });
+  }
 };
 
-/**
- * @route /auth/register
- * @method POST
- * @description register a new user, and return jwt token
- */
-export const register: RequestHandler = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
 
-        if (await User.findOne({ email })) throw new Error("user already exists");
-
-        const salt = genSaltSync(10);
-        const hashedPassword = hashSync(password, salt);
-
-        const user = new User({ email, password: hashedPassword });
-        await user.save();
-
-        res.status(201).json({ success: true, user: { id: user._id, email: user.email, token: generateToken(user._id as string, user.email) } });
-    } catch (error) {
-        res.status(400).json({ success: false, error: (error as Error).message });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
     }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1d" }
+    );
+
+    res.json({ token });
+  } catch (err) {
+    res.status(500).json({ error: "Login failed" });
+  }
 };
 
-/**
- * @route /auth/login
- * @method POST
- * @description validate a user, and return jwt token
- */
-export const login: RequestHandler = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
-
-        if (!user) throw new Error("invalid credentials");
-        if (!compareSync(password, user.password)) throw new Error("invalid credentials");
-
-        res.status(201).json({ success: true, user: { id: user._id, email: user.email, token: generateToken(user._id as string, user.email) } });
-    } catch (error) {
-        res.status(401).json({ success: false, error: (error as Error).message });
-    }
+export const healthCheck = (_req: Request, res: Response) => {
+  res.json({ status: "auth ok" });
 };

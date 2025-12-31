@@ -12,10 +12,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.register = void 0;
+exports.login = exports.register = exports.healthCheck = void 0;
 const User_1 = __importDefault(require("../../model/User"));
 const tokens_1 = require("../../lib/tokens");
 const bcrypt_1 = require("bcrypt");
+/* HEALTH CHECK CONTROLLER */
+const healthCheck = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.status(200).send("/auth/");
+});
+exports.healthCheck = healthCheck;
 /**
  * @route /auth/register
  * @method POST

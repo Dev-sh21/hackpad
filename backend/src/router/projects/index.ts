@@ -1,42 +1,13 @@
 import { Router } from "express";
-import * as controller from "../../controller/project/index";
+import * as controller from "../../controller/project";
+import authenticated from "../../middleware/authenticated";
 
 const router = Router();
 
-/**
- * @route /project
- * @method POST
- * @description create new project
- */
-router.post("/", controller.createProject);
+router.post("/", authenticated, controller.createProject);
+router.get("/", authenticated, controller.getAllProjects);
+router.get("/:id", authenticated, controller.getProject);
+router.put("/:id", authenticated, controller.updateProject);
+router.delete("/:id", authenticated, controller.deleteProject);
 
-/**
- * @route /project/:id
- * @method PUT
- * @description update any particular project
- */
-router.put("/:id", controller.updateProject);
-
-/**
- * @route /project
- * @method GET
- * @description read all the projects associated with a account without content
- */
-router.get("/", controller.getAllProjects);
-
-/**
- * @route /project/:id
- * @method GET
- * @description read a particular project with content
- */
-router.get("/:id", controller.getProject);
-
-/**
- * @route /project/:id
- * @method DELETE
- * @description delete a particular project
- */
-router.delete("/:id", controller.deleteProject);
-
-/* ROUTES EXPORT MODULE */
 export default router;

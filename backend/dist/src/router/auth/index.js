@@ -37,6 +37,12 @@ const express_1 = require("express");
 const controller = __importStar(require("../../controller/auth/index"));
 const router = (0, express_1.Router)();
 /**
+ * @route /auth/
+ * @method GET
+ * @description just for checking auth route
+ */
+router.get("/", controller.healthCheck);
+/**
  * @route /auth/register
  * @method POST
  * @description register a new user, and return jwt token

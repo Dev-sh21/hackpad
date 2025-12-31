@@ -1,21 +1,34 @@
-import { Document, Schema, model } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 
-export interface IProject extends Document {
-	_id: string;
+export interface ProjectContent {
+	id: number | string;
+	active: boolean;
 	name: string;
-	description: string;
-	content: {
-		id: number | string;
-		active: boolean;
-		name: string;
-		code: string;
-		language: string;
-	}[];
-	uid: Schema.Types.ObjectId;
-	accessTo: [Schema.Types.ObjectId];
+	code: string;
+	language: string;
 }
 
-const ProjectSchema = new Schema({
+export interface IProject {
+	_id: Types.ObjectId;
+	name: string;
+	description: string;
+	content: ProjectContent[];
+	uid: Types.ObjectId;
+	accessTo: Types.ObjectId[];
+}
+
+const ProjectContentSchema = new Schema<ProjectContent>(
+	{
+		id: { type: Schema.Types.Mixed, required: true },
+		active: { type: Boolean, required: true },
+		name: { type: String, required: true },
+		code: { type: String, required: true },
+		language: { type: String, required: true },
+	},
+	{ _id: false }
+);
+
+const ProjectSchema = new Schema<IProject>({
 	name: {
 		type: String,
 		required: true,
@@ -25,15 +38,16 @@ const ProjectSchema = new Schema({
 		default: "",
 	},
 	content: {
-		type: Array<Schema.Types.Mixed>,
+		type: [ProjectContentSchema],
 		default: [],
 	},
 	uid: {
 		type: Schema.Types.ObjectId,
 		ref: "User",
+		required: true,
 	},
 	accessTo: {
-		type: Array<Schema.Types.ObjectId>,
+		type: [Schema.Types.ObjectId],
 		default: [],
 	},
 });

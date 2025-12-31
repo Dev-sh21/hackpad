@@ -1,22 +1,22 @@
 import { RequestHandler } from "express";
-import { verify } from "jsonwebtoken";
-import { IUser } from "../model/User";
+import jwt from "jsonwebtoken";
 
-/**
- * @description checks for the authorization and append userId with request
- */
 const authenticated: RequestHandler = (req, res, next) => {
-	const token = req.header("Authorization");
-
 	try {
-		if (!token) throw new Error();
+		const authHeader = req.header("Authorization");
+		if (!authHeader) {
+			return res.status(401).json({ error: "No token provided" });
+		}
 
-		const user = verify(token.split(" ")[1], process.env.JWT_SECRET as string) as IUser;
+		const token = authHeader.split(" ")[1];
+		const decoded = jwt.verify(
+			token,
+			process.env.JWT_SECRET as string
+		) as { userId: string };
 
-		(req as any).userId = user._id;
-		(req as any).userEmail = user.email;
+		(req as any).userId = decoded.userId;
 		next();
-	} catch (error) {
+	} catch {
 		res.status(401).json({ error: "Please authenticate using a valid token" });
 	}
 };
